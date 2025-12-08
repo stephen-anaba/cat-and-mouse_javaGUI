@@ -9,22 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-// ==================== NEW ============================
-// ------ Top Panel -------
-// initBtn:     Initialize => button
-// goBtn:       Go/Pause => Toggle button
-// ------ Middle Panel ------
-// catDir:       Cat initial dir => Input text field
-// catSpeed:     Cat variable speed => Output text field (immutable)
-// catX:         Cat-X => X-coordinate for Cat
-// catY:         Cat-Y => Y-coordinate for Cat
-// ------- Bottom Panel -------
-// mouseDir:     Mouse initial dir => Input text field
-// mouseSpeed:   Mouse variable speed => Output field (immutable)
-// mouseX:       Mouse-X => X-coordinate for Mouse
-// mouseY:       Mouse-Y => Y-coordinate for Mouse
-// exitBtn:      Exit => button
-// ---------------------------------------------------
 public class Board extends JFrame {
     // panels
     private JPanel top, middle, bottom;
@@ -36,16 +20,14 @@ public class Board extends JFrame {
     // coordinate output
     private JTextField catXout, catYout, mouseXout, mouseYout;
     // timer
-    private Timer timer;
-    // cat & mouse ball properties : 214
-    private double catBallX, catBallY, mouseBallX, mouseBallY;
-    private int catBallSize = 50; private int mouseBallSize = 30;
+    private Timer timer; //mouseTimer, catTimer;
+    // cat & mouse ball properties
+    private double catX, catY, mouseX, mouseY;
+    private int catSize = 50, mouseSize = 30;
     // cat & mouse speed components
     private double dxCat = 0, dyCat = 0, dxMouse = 0, dyMouse = 0; 
-    private boolean catRunning = false;
-    private boolean mouseRunning = false;
-    // 213
-    private Dimension size1, size2, size3;
+    private boolean running = false;
+    // private Dimension size1, size2, size3;
 
     // constructor
     public Board() {
@@ -61,7 +43,7 @@ public class Board extends JFrame {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
         top.add(titleLabel);
         // ---------------- MIDDLE PANEL ----------------
-        middle = new DrawPanel();
+        middle = new DrawPanel(); // draw the mouse panel
         middle.setBackground(new Color(255, 255, 153));
         // ---------------- BOTTOM PANEL ----------------
         // create bottom, set background color, layout
@@ -174,12 +156,11 @@ public class Board extends JFrame {
         r3cell3.add(r3cell3sub);       // add r3cell3sub to r3cell3
         // r3cell4: exitBtn
         // JPanel r3cell4 = new JPanel();
-        JPanel r3cell4 = new JPanel(new FlowLayout(FlowLayout.CENTER,10,10));
+        JPanel r3cell4 = new JPanel(new FlowLayout(FlowLayout.CENTER,10,5));
         r3cell4.setBackground(new Color(255, 204, 51));
         exitBtn = new JButton("Exit");
         exitBtn.setBackground(new Color(255, 204, 51));
         exitBtn.setPreferredSize(new Dimension(190,40));
-        // exitBtn.setPreferredSize(size2); // size2
         r3cell4.add(exitBtn); // add exitBtn to r3cell4
         // add r3cells 1-4 to row2
         row3.add(r3cell1); 
@@ -192,7 +173,9 @@ public class Board extends JFrame {
         row4.setBackground(new Color(255, 204, 51));
 
         // add rows 1-3 to bottom panel
-        bottom.add(row1); bottom.add(row2); bottom.add(row3);
+        bottom.add(row1); 
+        bottom.add(row2); 
+        bottom.add(row3);
         bottom.add(row4);
 
         // ----------- add panels ----------
@@ -206,12 +189,13 @@ public class Board extends JFrame {
         });
 
         // ---------------- events ----------------
- /*       initBtn.addActionListener(e -> initializeBall());
-        startBtn.addActionListener(e -> toggleStartPause());
-        quitBtn.addActionListener(e -> System.exit(0));
+        initBtn.addActionListener(e -> initializeBoth());
+        goBtn.addActionListener(e -> toggleGoPause());
+        exitBtn.addActionListener(e -> System.exit(0));
 
-        // timer (60 fps)
-        timer = new Timer(16, e -> updateBall()); */
+        // mouseTimer (60 fps)
+        timer = new Timer(16, e -> updateMouse());
+        // catTimer = new Timer(16, e -> updateCat());
 
         setVisible(true);
  
@@ -230,264 +214,52 @@ public class Board extends JFrame {
         top.setBounds(0, 0, w, topHeight);
         middle.setBounds(0, topHeight, w, middleHeight);
         bottom.setBounds(0, topHeight + middleHeight, w, bottomHeight);
-// 71
-/*        // catDirIn/mouseDirIn/catXout/catYout/mouseXout/mouseYou 
-        size1 = new Dimension((int)(7*bottomHeight/2), (int)(bottomHeight/6)); // w50, h32 
-        // initBtn/goBtn/exitBtn
-        size2 = new Dimension(2*bottomHeight/3, bottomHeight/6); // 80,30
-        // catSpeedIn/mouseSpeedIn
-        size3 = new Dimension(2*bottomHeight/3, bottomHeight/6); // 130,32 */
-    }
-
-    // ================== draw panel =================
-    private class DrawPanel extends JPanel {
-        // paint compoent for mouse - blue
-        protected void paintMouseComponent(Graphics gMouse) {
-            super.paintComponent(gMouse);
-            if (goBtn.isEnabled()) {
-                gMouse.setColor(Color.BLUE); 
-                gMouse.fillOval((int)mouseBallX, (int)mouseBallY, mouseBallSize, mouseBallSize); 
-            }
-        } // end paintComponent(Graphics gMouse)
-        // paint component for cat - red
-        protected void paintCatComponent(Graphics gCat) {
-            super.paintComponent(gCat);
-            if (goBtn.isEnabled()) {
-                gCat.setColor(Color.RED);
-                gCat.fillOval((int)catBallX, (int)catBallY, catBallSize, catBallSize);
-            }
-        } // end paintComponent(Graphics gCat)
-    }
-
-} // end of Board
-
-
-
-// ================ OLD ===============================
-/*
- public class Board extends JFrame {
-    // Panels
-    private JPanel top, middle, bottom; // panels
-    private JLabel titleLabel;         // titel
-    // Input fields: angle (radians)
-    private JTextField catDirField, catSpeedIn, mouseDirField, mouseSpeedOut;
-    // Buttons
-    private JButton initBtn, goBtn, exitBtn;
-    // Coordinate output
-    private JTextField catSpeedIn, mouseSpeedOut;
-    // Timer
-    private Timer timer;
-    // Ball properties
-    private double ballX, ballY;  // now double
-    private int ballSize = 30;
-    private double dx = 0, dy = 0;   // velocity components
-    private boolean running = false;
-    
-    // Constructor
-    public Board() {
-        setTitle("Cat and Mouse");
-        setSize(900, 750);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null);
-        // ---------------- TOP PANEL ----------------
-        top = new JPanel();
-        top.setBackground(new Color(153, 255, 51));
-        top.setLayout(new GridBagLayout());
-        titleLabel = new JLabel("Cat and Mouse by Stephen Anaba", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
-        top.add(titleLabel);
-        // ---------------- MIDDLE PANEL ----------------
-        middle = new DrawPanel();
-        middle.setBackground(new Color(255, 255, 153)); 
-        
-        // ---------------- BOTTOM PANEL -----------------
-        // create bottom, set background color, layout
-        bottom = new JPanel();
-        bottom.setBackground(new Color(255, 204, 51));
-        bottom.setLayout(new GridLayout(3, 1));  // 3 rows, 1 cols
-
-        // BUTTON SIZES for adjustment
-         Dimension btnSize1 = new Dimension(110, 32); // cat/mouse fields
-         Dimension btnSize2 = new Dimension(110, 32); // init/Go
-         Dimension btnSize3 = new Dimension(110, 32); // Exit
-
-        // ---- ROW 1: Initialize, Go ----
-        // create row1, initField & goField
-        JPanel row1 = new JPanel(new GridLayout(1, 2));
-        row1.setBackground(new Color(255, 204, 51));
-        initBtn = new JButton("Initialize");
-        goBtn = new JButton("Go");
-        goBtn.setEnabled(false);
-
-        // apply compact sizes
-        initBtn.setPreferredSize(btnSize2); // resize initBtn
-        goBtn.setPreferredSize(btnSize2);  // resize goBtn
-
-        // add initBtn and goBtn to row1 
-        row1.add(initBtn);
-        row1.add(goBtn);
-
-        // ---- ROW 2: catDirField | catVarSpeed | catCoord A,B ---
-        JPanel row2 = new JPanel(new GridLayout(1, 3));
-        // group 1: create catDirField to hold label "Cat initial direction" & text field vertically. Add tehm accordingly.
-        JPanel catDirField = new JPanel(); // create catDirField 
-        catDirField.setLayout(new BoxLayout(catDirField,BoxLayout.Y_AXIS));
-        catDirField.add(new JLabel("Cat initial direction"));
-        JTextField catDirInput = new JTextField(10);
-        catDirField.add(catDirInput);
-        // group 2: Cat variable speed
-        JPanel catSpeed = new JPanel();
-        catSpeedIn.setLayout(new BoxLayout(catSpeedIn, BoxLayout.Y_AXIS));
-        catSpeedIn.add(new JLabel("Cat Variable Speed"));
-        JTextField catSpeedIn = new JTextField(10);
-        catSpeed.add(catSpeedIn);
-        // group 3: Cat Coordinates X and Y
-        JPanel catCoord = new JPanel();
-        catCoord.setLayout(new BoxLayout(catCoord, BoxLayout.Y_AXIS));
-        catCoord.add(new JLabel("Cat Coordinates"));
-        JTextField coordX = new JTextField(10);
-        JTextField coordY = new JTextField(10);
-        coordX.setEditable(false);
-        coordY.setEditable(false);
-        // add groups to row2
-        row2.add(catDirField);
-        row2.add(catSpeed);
-        row2.add(catCoord);
-
-        // ---- ROW 3: mouseInitDir | mouseSpeed | mouseCoord X,Y ---
-        JPanel row3 = new JPanel(new GridLayout(1, 3));
-        // group 3: Mouse initial direction
-        JPanel mouseInitDir = new JPanel();
-        mouseInitDir.setLayout(new BoxLayout(mouseInitDir, BoxLayout.Y_AXIS));
-        mouseInitDir.add(new JLabel("Mouse initial direction"));
-        JTextField mouseDirField = new JTextField(10);
-        mouseInitDir.add(mouseDirField);
-        // group 4: Mouse variable speed
-        JPanel mouseSpeed = new JPanel();
-        mouseSpeed.setLayout(new BoxLayout(mouseSpeed, BoxLayout.Y_AXIS));
-        mouseSpeed.add(new JLabel("Cat Variable Speed"));
-        catSpeedIn = new JTextField(10);
-        mouseSpeed.add(catSpeedIn);
-        // group 5: Cat Coordinates X and Y
-        JPanel mouseCoord = new JPanel();
-        mouseCoord.setLayout(new BoxLayout(mouseCoord, BoxLayout.Y_AXIS));
-        mouseCoord.add(new JLabel("Cat Coordinates"));
-        coordX = new JTextField(10);
-        coordY = new JTextField(10);
-        coordX.setEditable(false);
-        coordY.setEditable(false);
-        // add groups to row3
-        row3.add(mouseInitDir);
-        row3.add(mouseSpeed);
-        row3.add(mouseCoord);
-        
-        // add row1, row2, row3 to bottom panel
-        bottom.add(row1); 
-        bottom.add(row2); 
-        bottom.add(row3); 
-
-        // ---------------- add panels ----------------
-        add(top);
-        add(middle);
-        add(bottom);
-
-        layoutPanels();
-        addComponentListener(new ComponentAdapter() {
-            public void componentResized(ComponentEvent e) {
-                layoutPanels();
-            }
-        });
-
-        // ---------------- events ----------------
-        initBtn.addActionListener(e -> initializeBall());
-        goBtn.addActionListener(e -> toggleGoPause());
-        exitBtn.addActionListener(e -> System.exit(0));
-
-        // timer (60 fps)
-        timer = new Timer(16, e -> updateBall());
-
-        setVisible(true);
-    } // end of constructor
-    
-    // ------- PlaceholderTextField helper class --------
-    class PlaceholderTextField extends JTextField {
-        private String placeholder;
-
-        public PlaceholderTextField(String placeholder) {
-            this.placeholder = placeholder;
-        }
-
-        @Override
-         protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            if (getText().isEmpty() && !isFocusOwner()) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setColor(Color.GRAY);
-                g2.drawString(placeholder, 5, getHeight() - 7);
-                g2.dispose();
-            }
-        }
-    } // end of PlaceholderTextField class
-
-
-    // --------------
-    // panel layout
-    // --------------
-    private void layoutPanels() {
-        int w = getWidth();
-        int h = getHeight();
-
-        int topHeight = h / 10;
-        int bottomHeight = (h / 4);
-        int middleHeight = h - topHeight - bottomHeight;
-
-        top.setBounds(0, 0, w, topHeight);
-        middle.setBounds(0, topHeight, w, middleHeight);
-        bottom.setBounds(0, topHeight + middleHeight, w, bottomHeight);
     }
 
     // ---------------------------------------
-    // initialize ball after input validation
+    // initialize mouse after input validation
     // ---------------------------------------
-    private void initializeBall() {
-        // variables
-        String s = speedField.getText().trim();
-        String d = dirField.getText().trim();
+    private void initializeBoth() {
+        // get mouse speed & direction
+        String s = mouseSpeedIn.getText().trim();
+        String d = mouseDirIn.getText().trim();
+        // get cat speed & direction
+        String sCat = catSpeedIn.getText().trim();
+        String dCat = catDirIn.getText().trim();
+
         // input validation
-        if (s.isEmpty() || d.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Both Speed and Direction must be entered.");
+        if (s.isEmpty() || d.isEmpty() || sCat.isEmpty() || dCat.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "All speed and Direction values must be entered.");
             return;
         }
 
-        double speed, angleDeg;
-        try {
-            speed = Double.parseDouble(s);
-            angleDeg = Double.parseDouble(d);
-
-            if (speed <= 0) throw new NumberFormatException();
-
+        // ------ after initial speed and direction enetered -----
+        double mouseSpeed, mouseAngleDeg;
+        try { // convert speed & dir to numbers
+            mouseSpeed = Double.parseDouble(s);
+            mouseAngleDeg = Double.parseDouble(d);
+            // endure negative numbers are not entered
+            if (mouseSpeed <= 0) throw new NumberFormatException();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Enter valid positive numbers.");
             return;
         }
-
-        double angleRad = Math.toRadians(angleDeg);
-
+        // convert the angle from degrees to radian
+        double mouseAngleRad = Math.toRadians(mouseAngleDeg);
         // Velocity per frame
-        dx = (speed * Math.cos(angleRad)) / 60.0;
-        dy = -(speed * Math.sin(angleRad)) / 60.0; // negative = upward
-
-        // Start ball in middle
-        ballX = middle.getWidth() / 2.0 - ballSize / 2.0;
-        ballY = middle.getHeight() / 2.0 - ballSize / 2.0;
+        dxMouse = (mouseSpeed * Math.cos(mouseAngleRad))/60.0;
+        dyMouse = -(mouseSpeed * Math.sin(mouseAngleRad))/60.0; // negative = upward
+        // Start mouse in middle
+        mouseX = middle.getWidth() / 2.0 - mouseSize / 2.0;
+        mouseY = middle.getHeight() / 2.0 - mouseSize / 2.0;
 
         middle.repaint();
         goBtn.setEnabled(true);
-    }
+    } // end of initializeMouse
 
-    // --------------
+    // -----------
     // go / pause
-    // --------------
+    // -----------
     private void toggleGoPause() {
         if (!running) {
             timer.start();
@@ -496,9 +268,11 @@ public class Board extends JFrame {
         } else {
             timer.stop();
             running = false;
+            mouseDirIn.setEnabled(false); // disable mouseDirIn 
+            catDirIn.setEnabled(false); // disable catDirIn
             goBtn.setText("Go");
         }
-    }
+    } // end of toggleGoPause
 
     // ------------------------------------
     // general vector reflection function
@@ -508,70 +282,71 @@ public class Board extends JFrame {
         nx /= len;
         ny /= len;
 
-        double dot = dx * nx + dy * ny;
-
-        dx = dx - 2 * dot * nx;
-        dy = dy - 2 * dot * ny;
-    }
+        double dot = dxMouse * nx + dyMouse * ny;
+        dxMouse = dxMouse - 2 * dot * nx;
+        dyMouse = dyMouse - 2 * dot * ny;
+    } // end of reflect(...)
 
     // ----------------------------------------------
     // update ball position using physics reflection
     // ----------------------------------------------
-    private void updateBall() {
+    private void updateMouse() {
         int panelW = middle.getWidth();
         int panelH = middle.getHeight();
 
         // Move with double precision
-        ballX += dx;
-        ballY += dy;
+        mouseX += dxMouse;
+        mouseY += dyMouse;
 
         // left wall
-        if (ballX <= 0) {
-            ballX = 0;
+        if (mouseX <= 0) {
+            mouseX = 0;
             reflect(1, 0);  // normal = (1, 0)
         }
 
         // right wall
-        if (ballX + ballSize >= panelW) {
-            ballX = panelW - ballSize;
+        if (mouseX + mouseSize >= panelW) {
+            mouseX = panelW - mouseSize;
             reflect(-1, 0); // normal = (-1, 0)
         }
 
         // top wall
-        if (ballY <= 0) {
-            ballY = 0;
+        if (mouseY <= 0) {
+            mouseY = 0;
             reflect(0, 1);  // normal = (0, 1)
         }
 
         // bottom wall
-        if (ballY + ballSize >= panelH) {
-            ballY = panelH - ballSize;
+        if (mouseY + mouseSize >= panelH) {
+            mouseY = panelH - mouseSize;
             reflect(0, -1); // normal = (0, -1)
         }
 
         // Update center outputs
-        xOutput.setText(Integer.toString((int)(ballX + ballSize / 2)));
-        yOutput.setText(Integer.toString((int)(ballY + ballSize / 2)));
+        mouseXout.setText(Integer.toString((int)(mouseX + mouseSize / 2)));
+        mouseYout.setText(Integer.toString((int)(mouseY + mouseSize / 2)));
 
         middle.repaint();
-    }
+    } // end of updateMouse()
 
-    // -----------
-    // draw panel
-    // -----------
+    // ================== draw panel =================
     private class DrawPanel extends JPanel {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-
             if (goBtn.isEnabled()) {
-                g.setColor(Color.BLUE);
-                g.fillOval((int)ballX, (int)ballY, ballSize, ballSize);
+                // draw mouse
+                g.setColor(Color.BLUE); 
+                g.fillOval((int)mouseX, (int)mouseY, mouseSize, mouseSize); 
+                // draw cat
+                g.setColor(Color.RED);
+                g.fillOval((int)catX, (int)catY, catSize, catSize);
             }
-        }
-    }
+        } // end paintComponent(Graphics gMouse)
+    } // end of DrawPanel
 
-    public static void main(String[] args) {
-        new Board();
-    }
-} */
+} // end of Board
+
+
+
+
 
