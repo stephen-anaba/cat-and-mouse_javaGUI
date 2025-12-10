@@ -234,21 +234,28 @@ public class Board extends JFrame {
         }
 
         // ------ after initial speed and direction enetered -----
-        double mouseSpeed, mouseAngleDeg;
+        double mouseSpeed, mouseAngleDeg, catSpeed, catAngleDeg;
         try { // convert speed & dir to numbers
             mouseSpeed = Double.parseDouble(s);
             mouseAngleDeg = Double.parseDouble(d);
+            catSpeed = Double.parseDouble(sCat);
+            catAngleDeg = Double.parseDouble(dCat);
             // endure negative numbers are not entered
-            if (mouseSpeed <= 0) throw new NumberFormatException();
+            if (mouseSpeed <= 0 || catSpeed <= 0) throw new NumberFormatException();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Enter valid positive numbers.");
             return;
         }
-        // convert the angle from degrees to radian
+        // convert the angle from degrees to radians for both
         double mouseAngleRad = Math.toRadians(mouseAngleDeg);
-        // Velocity per frame
+        double catAngleRad = Mathh.toRadians(catAngleDeg);
+        
+        // Velocity per frame for mouse
         dxMouse = (mouseSpeed * Math.cos(mouseAngleRad))/60.0;
         dyMouse = -(mouseSpeed * Math.sin(mouseAngleRad))/60.0; // negative = upward
+        // velocity per frame for cat
+        dxCat = ()/70.0; // TODO: Continue from here
+        dyCat = ()/70.0; // TODO: complete this part too
         // Start mouse in middle
         mouseX = middle.getWidth() / 2.0 - mouseSize / 2.0;
         mouseY = middle.getHeight() / 2.0 - mouseSize / 2.0;
