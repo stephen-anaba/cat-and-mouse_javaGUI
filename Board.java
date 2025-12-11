@@ -248,14 +248,14 @@ public class Board extends JFrame {
         }
         // convert the angle from degrees to radians for both
         double mouseAngleRad = Math.toRadians(mouseAngleDeg);
-        double catAngleRad = Mathh.toRadians(catAngleDeg);
+        double catAngleRad = Math.toRadians(catAngleDeg);
         
         // Velocity per frame for mouse
         dxMouse = (mouseSpeed * Math.cos(mouseAngleRad))/60.0;
         dyMouse = -(mouseSpeed * Math.sin(mouseAngleRad))/60.0; // negative = upward
         // velocity per frame for cat
-        dxCat = ()/70.0; // TODO: Continue from here
-        dyCat = ()/70.0; // TODO: complete this part too
+//        dxCat = ()/70.0; // TODO: Continue from here
+//        dyCat = ()/70.0; // TODO: complete this part too
         // Start mouse in middle
         mouseX = middle.getWidth() / 2.0 - mouseSize / 2.0;
         mouseY = middle.getHeight() / 2.0 - mouseSize / 2.0;
