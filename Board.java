@@ -22,7 +22,7 @@ public class Board extends JFrame {
     // timer
     private Timer timer; //mouseTimer, catTimer;
     // cat & mouse ball properties
-    private double catX, catY, mouseX, mouseY;
+    private double catX, catY, mouseX, mouseY, mouseSpeedValue, catSpeedValue;
     private int catSize = 50, mouseSize = 30;
     // cat & mouse speed components
     private double dxCat = 0, dyCat = 0, dxMouse = 0, dyMouse = 0; 
@@ -194,8 +194,10 @@ public class Board extends JFrame {
         exitBtn.addActionListener(e -> System.exit(0));
 
         // mouseTimer (60 fps)
-        timer = new Timer(16, e -> updateMouse());
-        // catTimer = new Timer(16, e -> updateCat());
+        timer = new Timer(16, e -> {
+            updateMouse();
+            updateCatTracking();
+        });
 
         setVisible(true);
  
@@ -216,9 +218,7 @@ public class Board extends JFrame {
         bottom.setBounds(0, topHeight + middleHeight, w, bottomHeight);
     }
 
-    // ---------------------------------------
-    // initialize mouse after input validation
-    // ---------------------------------------
+    // ------ initialize mouse after input validation -----
     private void initializeBoth() {
         // get mouse speed & direction
         String s = mouseSpeedIn.getText().trim();
@@ -236,12 +236,12 @@ public class Board extends JFrame {
         // ------ after initial speed and direction enetered -----
         double mouseSpeed, mouseAngleDeg, catSpeed, catAngleDeg;
         try { // convert speed & dir to numbers
-            mouseSpeed = Double.parseDouble(s);
-            mouseAngleDeg = Double.parseDouble(d);
-            catSpeed = Double.parseDouble(sCat);
+            mouseSpeedValue = Double.parseDouble(s); 
+            mouseAngleDeg = Double.parseDouble(d);   
+            catSpeedValue = Double.parseDouble(sCat);
             catAngleDeg = Double.parseDouble(dCat);
             // endure negative numbers are not entered
-            if (mouseSpeed <= 0 || catSpeed <= 0) throw new NumberFormatException();
+            if (mouseSpeedValue <= 0 || catSpeedValue <= 0) throw new NumberFormatException();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Enter valid positive numbers.");
             return;
@@ -251,22 +251,23 @@ public class Board extends JFrame {
         double catAngleRad = Math.toRadians(catAngleDeg);
         
         // Velocity per frame for mouse
-        dxMouse = (mouseSpeed * Math.cos(mouseAngleRad))/60.0;
-        dyMouse = -(mouseSpeed * Math.sin(mouseAngleRad))/60.0; // negative = upward
+        dxMouse = (mouseSpeedValue * Math.cos(mouseAngleRad))/60.0;
+        dyMouse = -(mouseSpeedValue * Math.sin(mouseAngleRad))/60.0; // negative = upward
         // velocity per frame for cat
-//        dxCat = ()/70.0; // TODO: Continue from here
-//        dyCat = ()/70.0; // TODO: complete this part too
+        dxCat = (catSpeedValue * Math.cos(catAngleRad)) / 70.0; // new
+        dyCat = -(catSpeedValue * Math.sin(catAngleRad)) / 70.0; // new
         // Start mouse in middle
         mouseX = middle.getWidth() / 2.0 - mouseSize / 2.0;
         mouseY = middle.getHeight() / 2.0 - mouseSize / 2.0;
+        // TODO: Start cat at random point
+//        catX = middle.getWidth() / 4.0 - catSize / 2.0;
+//        catY = middle.getHeight() / 2.0 - catSize / 2.0;
 
         middle.repaint();
         goBtn.setEnabled(true);
     } // end of initializeMouse
 
-    // -----------
-    // go / pause
-    // -----------
+    // ---------- go / pause --------
     private void toggleGoPause() {
         if (!running) {
             timer.start();
@@ -281,9 +282,8 @@ public class Board extends JFrame {
         }
     } // end of toggleGoPause
 
-    // ------------------------------------
-    // general vector reflection function
-    // ------------------------------------
+    
+    // -------- general vector reflection function -------- 
     private void reflect(double nx, double ny) {
         double len = Math.sqrt(nx * nx + ny * ny);
         nx /= len;
@@ -294,47 +294,78 @@ public class Board extends JFrame {
         dyMouse = dyMouse - 2 * dot * ny;
     } // end of reflect(...)
 
-    // ----------------------------------------------
-    // update ball position using physics reflection
-    // ----------------------------------------------
+    
+    // -------- update cat position using physics reflection --------- 
     private void updateMouse() {
         int panelW = middle.getWidth();
         int panelH = middle.getHeight();
-
         // Move with double precision
         mouseX += dxMouse;
         mouseY += dyMouse;
-
         // left wall
         if (mouseX <= 0) {
             mouseX = 0;
             reflect(1, 0);  // normal = (1, 0)
         }
-
         // right wall
         if (mouseX + mouseSize >= panelW) {
             mouseX = panelW - mouseSize;
             reflect(-1, 0); // normal = (-1, 0)
         }
-
         // top wall
         if (mouseY <= 0) {
             mouseY = 0;
             reflect(0, 1);  // normal = (0, 1)
         }
-
         // bottom wall
         if (mouseY + mouseSize >= panelH) {
             mouseY = panelH - mouseSize;
             reflect(0, -1); // normal = (0, -1)
         }
-
         // Update center outputs
         mouseXout.setText(Integer.toString((int)(mouseX + mouseSize / 2)));
         mouseYout.setText(Integer.toString((int)(mouseY + mouseSize / 2)));
-
         middle.repaint();
     } // end of updateMouse()
+
+    // update cat tracing
+    private void updateCatTracking() {
+       int panelW = middle.getWidth();
+       int panelH = middle.getHeight();
+       // compute vector from cat to mouse
+       double cx = catX + catSize / 2.0;
+       double cy = catY + catSize / 2.0;
+       double mx = mouseX + mouseSize / 2.0;
+       double my = mouseY + mouseSize / 2.0;
+
+       double vx = mx - cx;
+       double vy = my - cy;
+
+       // normalize direction
+       double len = Math.sqrt(vx * vx + vy * vy);
+       if(len != 0) {
+           vx /= len;
+           vy /= len;
+       }
+       // apply cat speed magnitude (same as used at init)
+       double step = catSpeedValue / 70.0; 
+       
+       dxCat = vx * step;
+       dyCat = vy * step;
+       // move cat
+       catX += dxCat;
+       catY += dyCat;
+       // wall bounds (simple clamp)
+       if(catX < 0) catX = 0;
+       if(catX + catSize > panelW) catX = panelW - catSize;
+       if(catY < 0) catY = 0;
+       if(catY + catSize > panelH) catY = panelH - catSize;
+       // output coordinates
+       catXout.setText(Integer.toString((int)(catX + catSize/2)));
+       catYout.setText(Integer.toString((int)(catY + catSize/2)));
+       middle.repaint(); 
+
+    } // end of updateCatTracking()
 
     // ================== draw panel =================
     private class DrawPanel extends JPanel {
