@@ -1,8 +1,8 @@
 // Name: Stephen Anaba
 // CWID: 7053
 // Email: stevoclock@csu.fullerton.edu
-// Course #: CPSC-223J
-// Assignment: FINAL program
+// Course #: CPSC-223jJ
+// Assignment: FINAL EXAM
 // Assignment title: Cat and Mouse GUI
 
 public class Main {
