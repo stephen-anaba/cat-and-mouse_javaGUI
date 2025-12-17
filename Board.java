@@ -149,8 +149,7 @@ public class Board extends JFrame {
 
         JPanel r3cell4 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         r3cell4.setBackground(new Color(255, 204, 51));
-        exitBtn = new JButton("Exit");
-        exitBtn.setBackground(new Color(255, 204, 51));
+        exitBtn = new JButton("Exit"); 
         exitBtn.setPreferredSize(new Dimension(190, 40));
         r3cell4.add(exitBtn);
 
